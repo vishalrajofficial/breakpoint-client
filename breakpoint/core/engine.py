@@ -53,11 +53,35 @@ class ClientPolicyEngine:
                 json=tool_call.model_dump(),
                 timeout=2.0
             )
-            data = resp.json()
             latency = (time.perf_counter() - start_time) * 1000.0
-            return EvaluationResult(**data)
-        except Exception as e:
-            # Fallback to local evaluation if cloud network fails
+
+            if resp.status_code in (401, 403):
+                detail = "Unauthorized"
+                try:
+                    detail = resp.json().get("detail", "Unauthorized")
+                except Exception:
+                    detail = resp.text or "Unauthorized"
+
+                return EvaluationResult(
+                    call_id=tool_call.call_id,
+                    tool_name=tool_call.tool_name,
+                    decision=ActionDecision.BLOCK,
+                    allowed=False,
+                    reason=f"BreakPoint Cloud Authentication Failed: {detail}",
+                    latency_ms=round(latency, 2),
+                    synthetic_error="BreakPointAuthError: Invalid or revoked API key."
+                )
+
+            if resp.status_code == 200:
+                data = resp.json()
+                return EvaluationResult(**data)
+
+            # On other HTTP errors, fallback to local evaluation
+            return self._evaluate_local(tool_call)
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.NetworkError):
+            # Graceful fallback to local evaluation if cloud network is unreachable
+            return self._evaluate_local(tool_call)
+        except Exception:
             return self._evaluate_local(tool_call)
 
     def _evaluate_local(self, tool_call: ToolCall) -> EvaluationResult:
