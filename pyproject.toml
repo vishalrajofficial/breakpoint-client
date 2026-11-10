@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "breakpoint-ai"
+version = "0.1.0"
+description = "Zero-Trust Runtime Firewall & Circuit Breaker for Autonomous AI Agents"
+readme = "README.md"
+authors = [
+    { name = "Vishal Raj", email = "9031842908.vk@gmail.com" }
+]
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+keywords = [
+    "ai-agent",
+    "security",
+    "firewall",
+    "circuit-breaker",
+    "langchain",
+    "gemini",
+    "openai",
+    "guardrails"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Security"
+]
+dependencies = [
+    "pydantic>=2.6.0",
+    "pyyaml>=6.0.1",
+    "httpx>=0.27.0"
+]
+
+[project.optional-dependencies]
+gemini = ["google-generativeai>=0.8.0"]
+langchain = ["langchain-core>=0.1.0"]
+dev = ["pytest>=8.0.0"]
+
+[project.urls]
+Homepage = "https://github.com/vishalrajofficial/breakpoint-client"
+Repository = "https://github.com/vishalrajofficial/breakpoint-client.git"
+Documentation = "https://github.com/vishalrajofficial/breakpoint-client#readme"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["breakpoint*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml"]

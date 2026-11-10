@@ -1,0 +1,74 @@
+version: "1.0"
+environment: "production"
+
+# Global default settings
+defaults:
+  action_on_unmatched: "ALLOW" # ALLOW, BLOCK, or AUDIT
+  enforce_circuit_breaker: true
+  max_consecutive_failures: 3
+  circuit_cooldown_seconds: 60
+
+# Human-in-the-Loop Integrations
+hitl:
+  slack:
+    enabled: true
+    webhook_url: "" # Can also be set via $env:SLACK_WEBHOOK_URL
+    base_approval_url: "http://127.0.0.1:8000"
+
+# Specific tool policies
+policies:
+  # Database tool policies
+  - tool_name: "database.execute_sql"
+    description: "Policy guarding arbitrary SQL queries executed by agents"
+    risk_level: "CRITICAL"
+    rules:
+      destructive_patterns:
+        enabled: true
+        block_keywords:
+          - "DROP TABLE"
+          - "DROP DATABASE"
+          - "TRUNCATE"
+          - 'DELETE FROM [a-zA-Z_]+(?!\s+WHERE)'
+          - "ALTER TABLE.*DROP"
+      require_human_approval:
+        condition: "query contains 'UPDATE' or query contains 'DELETE'"
+        timeout_seconds: 60
+
+  # Financial / Stripe tool policies
+  - tool_name: "payment.refund"
+    description: "Policy governing automated refunds initiated by agents"
+    risk_level: "HIGH"
+    rules:
+      budget_limits:
+        param_name: "amount"
+        max_per_call: 50.00
+        currency: "USD"
+      rate_limits:
+        max_calls_per_minute: 5
+        max_calls_per_hour: 20
+      require_human_approval:
+        condition: "amount > 50.00"
+        timeout_seconds: 120
+
+  # Cloud Infrastructure tool policies
+  - tool_name: "cloud.terminate_instance"
+    description: "Guard rails for VM and cluster lifecycle actions"
+    risk_level: "CRITICAL"
+    rules:
+      hard_block:
+        enabled: true
+        reason: "Autonomous agents are forbidden from terminating cloud instances directly."
+
+  # File System tool policies
+  - tool_name: "filesystem.run_command"
+    description: "Shell command execution protection"
+    risk_level: "CRITICAL"
+    rules:
+      destructive_patterns:
+        enabled: true
+        block_keywords:
+          - "rm -rf"
+          - "format [a-zA-Z]:"
+          - "mkfs"
+          - ":(){ :|:& };:"
+          - "> /dev/sda"
