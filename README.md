@@ -12,7 +12,7 @@
 ## ⚡ Quickstart (2 Lines of Code)
 
 ```bash
-pip install breakpoint-ai
+pip install breakpoint-sdk
 ```
 
 ### Protect any Python function from untrusted agent execution:
