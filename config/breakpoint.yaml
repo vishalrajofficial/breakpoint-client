@@ -8,13 +8,6 @@ defaults:
   max_consecutive_failures: 3
   circuit_cooldown_seconds: 60
 
-# Human-in-the-Loop Integrations
-hitl:
-  slack:
-    enabled: true
-    webhook_url: "" # Can also be set via $env:SLACK_WEBHOOK_URL
-    base_approval_url: "http://127.0.0.1:8000"
-
 # Specific tool policies
 policies:
   # Database tool policies
